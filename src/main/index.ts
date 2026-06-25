@@ -5,7 +5,12 @@ import type { AppSettings } from '@shared/types'
 import { openDatabase, type AppDatabase } from './db'
 import { registerIpcHandlers, runIndexing, stopWatcher } from './ipcHandlers'
 import { createTray, destroyTray } from './tray'
-import { applyAutoLaunch, registerGlobalShortcut } from './system'
+import {
+  applyAutoLaunch,
+  registerDoubleCmd,
+  registerGlobalShortcut,
+  stopDoubleCmd,
+} from './system'
 import { buildAppMenu } from './menu'
 import { getSettings } from './settings'
 
@@ -108,6 +113,7 @@ app.whenReady().then(() => {
   })
   buildAppMenu({ getWindow, onReindex: reindex })
   applySystemSettings(getSettings())
+  registerDoubleCmd(toggleWindow) // 双击 Command 键全局唤起（需辅助功能权限）
 
   app.on('activate', () => {
     if (!mainWindow) {
@@ -131,6 +137,7 @@ app.on('before-quit', () => {
 
 app.on('will-quit', () => {
   globalShortcut.unregisterAll()
+  stopDoubleCmd()
   stopWatcher()
   destroyTray()
   db?.close()

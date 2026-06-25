@@ -69,7 +69,7 @@ interface FileIconProps {
 export function FileIcon({ ext, isDir, size = 18 }: FileIconProps): JSX.Element {
   if (isDir) {
     return (
-      <svg width={size} height={size} viewBox="0 0 20 20" aria-hidden>
+      <svg width={size} height={size} viewBox="0 0 20 20" aria-hidden className="shrink-0">
         <path
           d="M2 6 a1.6 1.6 0 0 1 1.6 -1.6 H8 l1.8 1.8 h6.6 A1.6 1.6 0 0 1 18 7.8 V15 a1.6 1.6 0 0 1 -1.6 1.6 H3.6 A1.6 1.6 0 0 1 2 15 Z"
           fill="#54a0e0"
@@ -80,7 +80,7 @@ export function FileIcon({ ext, isDir, size = 18 }: FileIconProps): JSX.Element 
   }
   const { color, label } = typeStyle(ext)
   return (
-    <svg width={size} height={size} viewBox="0 0 20 20" aria-hidden>
+    <svg width={size} height={size} viewBox="0 0 20 20" aria-hidden className="shrink-0">
       <path
         d="M5 1.6 h6.6 L16 6 v11.4 a1.4 1.4 0 0 1 -1.4 1.4 H5 a1.4 1.4 0 0 1 -1.4 -1.4 V3 A1.4 1.4 0 0 1 5 1.6 Z"
         fill={color}
