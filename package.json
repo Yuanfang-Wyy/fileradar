@@ -24,6 +24,7 @@
     "electron-store": "^8.2.0"
   },
   "devDependencies": {
+    "@electron/rebuild": "^3.7.0",
     "@tanstack/react-virtual": "^3.10.8",
     "@types/better-sqlite3": "^7.6.11",
     "@types/node": "^20.14.0",

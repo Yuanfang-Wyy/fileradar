@@ -1,11 +1,13 @@
 import { join } from 'path'
 import { app, BrowserWindow, shell } from 'electron'
 import log from 'electron-log/main'
+import { openDatabase, type AppDatabase } from './db'
 import { registerIpcHandlers } from './ipcHandlers'
 
 log.initialize()
 
 let mainWindow: BrowserWindow | null = null
+let db: AppDatabase | null = null
 
 function createWindow(): void {
   mainWindow = new BrowserWindow({
@@ -49,11 +51,12 @@ function createWindow(): void {
 }
 
 app.whenReady().then(() => {
-  registerIpcHandlers()
+  // 数据库存放于用户数据目录，跨启动持久化索引。
+  db = openDatabase(join(app.getPath('userData'), 'fileradar.db'))
+  registerIpcHandlers(db, () => mainWindow)
   createWindow()
 
   app.on('activate', () => {
-    // macOS：点击 Dock 图标且无窗口时重建。
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow()
     }
@@ -67,4 +70,9 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
   }
+})
+
+app.on('will-quit', () => {
+  db?.close()
+  db = null
 })

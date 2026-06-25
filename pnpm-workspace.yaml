@@ -1,5 +1,9 @@
 # pnpm 11+ 用 allowBuilds 决定哪些依赖可执行安装脚本（取代旧的 onlyBuiltDependencies）。
 # 单包项目同样把该设置放在 pnpm-workspace.yaml。值为布尔：true 允许、false 禁止。
+
+# 允许 @electron/rebuild 的 git 源子依赖 @electron/node-gyp（electron 官方维护，可信）。
+blockExoticSubdeps: false
+
 allowBuilds:
   electron: true # postinstall：下载 Electron 运行时二进制（dev 启动必需）
   esbuild: true # postinstall：安装当前平台原生二进制（Vite 构建必需）

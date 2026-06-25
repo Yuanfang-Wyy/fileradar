@@ -247,11 +247,11 @@ END;
 - [x] `watcher.ts`：chokidar 监听、增量 add/change/unlink
 - [x] `searcher.ts`：FTS5 查询、分页、筛选条件拼接
 
-### Phase 3：IPC 层
+### Phase 3：IPC 层 ✅
 
-- [ ] `ipcHandlers.ts`：注册所有 handle
-- [ ] preload 暴露完整 API
-- [ ] 渲染进程 hooks 对接 IPC
+- [x] `ipcHandlers.ts`：注册所有 handle
+- [x] preload 暴露完整 API
+- [x] 渲染进程 hooks 对接 IPC
 
 ### Phase 4：UI 层
 
@@ -279,10 +279,12 @@ END;
 
 ## 七、当前状态
 
-**当前阶段**：Phase 3 — IPC 层（未开始）  
-**最后更新**：Phase 2 完成 —— 数据层 db/indexer/searcher/watcher 实现，21 个 Vitest 测试全过、typecheck 全绿。关键变更：① better-sqlite3 ^9→^12（^9 因 C++20 要求无法在 node 24 编译）；② watcher 事件处理抽成 `makeWatchHandlers` 以脱离 chokidar 时序做可靠测试（vitest 下真实 chokidar 事件不稳定）；③ better-sqlite3 当前为 node 版本（供测试），app 运行所需的 Electron 版本将在 Phase 3 接通 IPC 时经 `pnpm rebuild:electron` 编译；④ db schema 额外加了 ext/mtime/size 索引用于筛选排序。
+**当前阶段**：Phase 4 — UI 层（未开始）  
+**最后更新**：Phase 3 完成 —— app 端到端可索引+搜索。main 初始化 db、ipcHandlers 接通 search/settings/index（索引后台执行+进度推送+watcher 生命周期）、renderer hooks（useSearch 防抖 / useIndex 订阅进度 / useSettings）+ App 最小搜索 UI。新增 `src/main/settings.ts`（electron-store 持久化，属 CLAUDE.md 目录外）。在 Electron runtime 端到端验证通过：ABI 119、索引 27 个真实文件、FTS5 搜索命中正确；typecheck 全绿。
 
-Phase 1 遗留约定（仍有效）：preload 在 `src/main/preload.ts`；pnpm 用 `pnpm-workspace.yaml` 的 `allowBuilds`；`electron-builder` 推迟至 Phase 6；electron 二进制经 `ELECTRON_MIRROR=npmmirror` 下载。
+⚠️ 当前状态注意：① better-sqlite3 现为 **Electron 版本**（rebuild:electron 后），跑 `pnpm test` 前须先 `pnpm rebuild` 切回 node 版本；② **沙箱环境下 Electron 无法创建 GUI 窗口**（启动即 `Command failed` 退出），需在正常终端跑 `pnpm dev`；③ renderer UI 渲染与 IPC 往返尚未做 GUI 验证（验证时屏幕锁定），Phase 4 补。
+
+Phase 1-2 遗留约定（仍有效）：preload 在 `src/main/preload.ts`；pnpm 用 `pnpm-workspace.yaml` 的 `allowBuilds` + `blockExoticSubdeps:false`；`electron-builder` 推迟至 Phase 6；electron 二进制/headers 经 `ELECTRON_MIRROR=npmmirror`。
 
 > 每完成一个 Phase，更新此处状态，并在对应 checklist 打勾。
 
