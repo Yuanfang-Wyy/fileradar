@@ -79,8 +79,9 @@ export default function App(): JSX.Element {
     })
   }, [setKeyword, toggleSort])
 
+  // 双击 / Enter：用默认程序打开文件（「在 Finder 中显示」见右键菜单）
   const activate = useCallback((file: FileRecord) => {
-    void window.fileRadar.file.reveal(file.path)
+    void window.fileRadar.file.open(file.path)
   }, [])
 
   const openContextMenu = useCallback((file: FileRecord, event: MouseEvent) => {

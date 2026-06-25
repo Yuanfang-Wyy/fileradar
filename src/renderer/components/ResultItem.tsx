@@ -1,8 +1,5 @@
-import type { CSSProperties } from 'react'
+import type { CSSProperties, MouseEvent } from 'react'
 import type { FileRecord } from '@shared/types'
-
-// 名称 | 路径 | 大小 | 修改时间。列头与每行共用此模板以保证对齐。
-export const GRID_COLS = 'minmax(150px, 1.2fr) minmax(180px, 2fr) 96px 150px'
 
 export function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`
@@ -40,23 +37,25 @@ interface ResultItemProps {
   file: FileRecord
   selected: boolean
   style: CSSProperties
+  gridCols: string
   onSelect: () => void
   onActivate: () => void
-  onContextMenu: (event: React.MouseEvent) => void
+  onContextMenu: (event: MouseEvent) => void
 }
 
-/** 表格化的单条结果：名称（图标+名）| 路径 | 大小 | 修改时间。 */
+/** 表格化的单条结果：名称（图标+名）| 路径 | 大小 | 修改时间。列宽由 gridCols 动态决定。 */
 export function ResultItem({
   file,
   selected,
   style,
+  gridCols,
   onSelect,
   onActivate,
   onContextMenu,
 }: ResultItemProps): JSX.Element {
   return (
     <div
-      style={{ ...style, display: 'grid', gridTemplateColumns: GRID_COLS, alignItems: 'center' }}
+      style={{ ...style, display: 'grid', gridTemplateColumns: gridCols, alignItems: 'center' }}
       onClick={onSelect}
       onDoubleClick={onActivate}
       onContextMenu={onContextMenu}
@@ -70,10 +69,10 @@ export function ResultItem({
         <span className="truncate">{file.name}</span>
       </span>
       <span className="truncate px-2 text-xs text-zinc-400">{file.path}</span>
-      <span className="px-2 text-right text-xs tabular-nums text-zinc-400">
+      <span className="truncate px-2 text-right text-xs tabular-nums text-zinc-400">
         {file.isDir ? '—' : formatSize(file.size)}
       </span>
-      <span className="px-3 text-right text-xs tabular-nums text-zinc-400">
+      <span className="truncate px-3 text-right text-xs tabular-nums text-zinc-400">
         {formatTime(file.mtime)}
       </span>
     </div>

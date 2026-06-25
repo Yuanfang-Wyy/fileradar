@@ -3,6 +3,25 @@ import { DEFAULT_MAX_RESULTS, SEARCH_DEBOUNCE_MS } from '@shared/constants'
 import type { SearchResult, SortColumn, SortOrder } from '@shared/types'
 
 const EMPTY_RESULT: SearchResult = { items: [], total: 0, elapsedMs: 0 }
+const PERSIST_KEY = 'fileradar:search'
+
+interface PersistedSearch {
+  sortBy?: SortColumn | null
+  sortOrder?: SortOrder
+  ext?: string
+}
+
+function loadPersisted(): PersistedSearch {
+  try {
+    const parsed: unknown = JSON.parse(localStorage.getItem(PERSIST_KEY) ?? '{}')
+    if (parsed && typeof parsed === 'object') {
+      return parsed as PersistedSearch
+    }
+  } catch {
+    /* 无持久化或解析失败 */
+  }
+  return {}
+}
 
 export interface UseSearch {
   keyword: string
@@ -18,13 +37,13 @@ export interface UseSearch {
 
 /**
  * 搜索 hook：关键词/筛选/排序变化后防抖 SEARCH_DEBOUNCE_MS 经 IPC 查询。
- * toggleSort：点同列切换升降序，点新列则以该列升序开始。
+ * 排序列与扩展名筛选持久化到 localStorage，下次启动自动恢复。
  */
 export function useSearch(): UseSearch {
   const [keyword, setKeyword] = useState('')
-  const [ext, setExt] = useState('')
-  const [sortBy, setSortBy] = useState<SortColumn | null>(null)
-  const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
+  const [ext, setExt] = useState<string>(() => loadPersisted().ext ?? '')
+  const [sortBy, setSortBy] = useState<SortColumn | null>(() => loadPersisted().sortBy ?? null)
+  const [sortOrder, setSortOrder] = useState<SortOrder>(() => loadPersisted().sortOrder ?? 'asc')
   const [result, setResult] = useState<SearchResult>(EMPTY_RESULT)
   const [loading, setLoading] = useState(false)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -40,6 +59,11 @@ export function useSearch(): UseSearch {
     },
     [sortBy],
   )
+
+  // 持久化排序/筛选偏好
+  useEffect(() => {
+    localStorage.setItem(PERSIST_KEY, JSON.stringify({ sortBy, sortOrder, ext }))
+  }, [sortBy, sortOrder, ext])
 
   useEffect(() => {
     if (timer.current) clearTimeout(timer.current)
