@@ -27,6 +27,7 @@ function createWindow(): void {
     show: false,
     frame: false,
     titleBarStyle: 'hidden',
+    trafficLightPosition: { x: 14, y: 22 }, // 红绿灯垂直对齐搜索栏，避免与 🔍 重叠
     vibrancy: 'sidebar',
     visualEffectState: 'active',
     webPreferences: {

@@ -1,5 +1,6 @@
 import type { CSSProperties, MouseEvent } from 'react'
 import type { FileRecord } from '@shared/types'
+import { FileIcon } from './FileIcon'
 
 export function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`
@@ -15,24 +16,6 @@ export function formatTime(ms: number): string {
   return `${d.getFullYear()}/${p(d.getMonth() + 1)}/${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`
 }
 
-const IMAGE = new Set(['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'heic', 'bmp', 'ico'])
-const VIDEO = new Set(['mp4', 'mov', 'avi', 'mkv', 'webm'])
-const AUDIO = new Set(['mp3', 'wav', 'flac', 'aac', 'm4a'])
-const ARCHIVE = new Set(['zip', 'tar', 'gz', 'rar', '7z', 'dmg'])
-const CODE = new Set(['ts', 'tsx', 'js', 'jsx', 'py', 'go', 'rs', 'java', 'c', 'cpp', 'h', 'json', 'md', 'sh', 'css', 'html'])
-
-function iconFor(file: FileRecord): string {
-  if (file.isDir) return '📁'
-  const ext = file.ext
-  if (IMAGE.has(ext)) return '🖼️'
-  if (VIDEO.has(ext)) return '🎬'
-  if (AUDIO.has(ext)) return '🎵'
-  if (ext === 'pdf') return '📕'
-  if (ARCHIVE.has(ext)) return '🗜️'
-  if (CODE.has(ext)) return '📜'
-  return '📄'
-}
-
 interface ResultItemProps {
   file: FileRecord
   selected: boolean
@@ -43,7 +26,7 @@ interface ResultItemProps {
   onContextMenu: (event: MouseEvent) => void
 }
 
-/** 表格化的单条结果：名称（图标+名）| 路径 | 大小 | 修改时间。列宽由 gridCols 动态决定。 */
+/** 表格化的单条结果：彩色类型图标 + 名称 | 路径 | 大小 | 修改时间。选中态为 Finder 风格蓝底白字。 */
 export function ResultItem({
   file,
   selected,
@@ -53,6 +36,7 @@ export function ResultItem({
   onActivate,
   onContextMenu,
 }: ResultItemProps): JSX.Element {
+  const sub = selected ? 'text-white/75' : 'text-zinc-400 dark:text-zinc-500'
   return (
     <div
       style={{ ...style, display: 'grid', gridTemplateColumns: gridCols, alignItems: 'center' }}
@@ -60,19 +44,21 @@ export function ResultItem({
       onDoubleClick={onActivate}
       onContextMenu={onContextMenu}
       title={file.path}
-      className={`cursor-default text-sm ${
-        selected ? 'bg-blue-500/15 dark:bg-blue-400/20' : 'hover:bg-black/5 dark:hover:bg-white/5'
+      className={`cursor-default text-[13px] ${
+        selected
+          ? 'bg-blue-500 text-white'
+          : 'text-zinc-800 hover:bg-black/[0.04] dark:text-zinc-100 dark:hover:bg-white/[0.05]'
       }`}
     >
-      <span className="flex items-center gap-2 truncate px-3">
-        <span className="shrink-0">{iconFor(file)}</span>
+      <span className="flex items-center gap-2.5 truncate pl-3 pr-2">
+        <FileIcon ext={file.ext} isDir={file.isDir} size={17} />
         <span className="truncate">{file.name}</span>
       </span>
-      <span className="truncate px-2 text-xs text-zinc-400">{file.path}</span>
-      <span className="truncate px-2 text-right text-xs tabular-nums text-zinc-400">
+      <span className={`truncate px-2 text-xs ${sub}`}>{file.path}</span>
+      <span className={`truncate px-2 text-right text-xs tabular-nums ${sub}`}>
         {file.isDir ? '—' : formatSize(file.size)}
       </span>
-      <span className="truncate px-3 text-right text-xs tabular-nums text-zinc-400">
+      <span className={`truncate px-3 text-right text-xs tabular-nums ${sub}`}>
         {formatTime(file.mtime)}
       </span>
     </div>

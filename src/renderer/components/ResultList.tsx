@@ -4,7 +4,7 @@ import { useVirtualizer } from '@tanstack/react-virtual'
 import type { FileRecord, SortColumn, SortOrder } from '@shared/types'
 import { ResultItem } from './ResultItem'
 
-const ROW_HEIGHT = 30
+const ROW_HEIGHT = 28
 const MIN_COL_WIDTH = 60
 const WIDTHS_KEY = 'fileradar:colWidths'
 const DEFAULT_WIDTHS = [220, 380, 96, 150] // 名称 / 路径 / 大小 / 修改时间
@@ -71,7 +71,6 @@ export function ResultList({
     }
   }, [selected, items.length, virtualizer])
 
-  // 拖拽列分隔条调整列宽：基于按下时的起始宽度 + 鼠标位移
   const startResize = (index: number, event: MouseEvent): void => {
     event.preventDefault()
     event.stopPropagation()
@@ -92,10 +91,10 @@ export function ResultList({
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
-      {/* 列头：可点排序 + 列间分隔条可拖拽调宽 */}
+      {/* 列头：可点排序（蓝色高亮）+ 列间分隔条可拖拽调宽 */}
       <div
         style={{ display: 'grid', gridTemplateColumns: gridCols }}
-        className="no-drag shrink-0 border-b border-black/10 dark:border-white/10"
+        className="no-drag shrink-0 border-b border-black/[0.07] bg-black/[0.015] dark:border-white/10 dark:bg-white/[0.02]"
       >
         {COLUMNS.map((column, index) => {
           const active = sortBy === column.col
@@ -104,18 +103,24 @@ export function ResultList({
               <button
                 type="button"
                 onClick={() => onSort(column.col)}
-                className={`flex flex-1 items-center gap-1 truncate px-3 py-1.5 text-xs font-medium hover:bg-black/5 dark:hover:bg-white/10 ${
+                className={`flex flex-1 items-center gap-1 truncate px-3 py-2 text-[11px] font-semibold uppercase tracking-wide transition-colors hover:text-zinc-700 dark:hover:text-zinc-200 ${
                   column.align === 'right' ? 'justify-end' : ''
-                } ${active ? 'text-zinc-700 dark:text-zinc-200' : 'text-zinc-400'}`}
+                } ${active ? 'text-blue-500' : 'text-zinc-400'}`}
               >
                 <span className="truncate">{column.label}</span>
-                {active && <span aria-hidden>{sortOrder === 'asc' ? '▲' : '▼'}</span>}
+                {active && (
+                  <span aria-hidden className="text-[9px]">
+                    {sortOrder === 'asc' ? '▲' : '▼'}
+                  </span>
+                )}
               </button>
               {index < COLUMNS.length - 1 && (
                 <div
                   onMouseDown={(e) => startResize(index, e)}
-                  className="absolute right-0 top-0 z-10 h-full w-1 cursor-col-resize hover:bg-blue-500/50"
-                />
+                  className="group absolute right-0 top-0 z-10 flex h-full w-2 cursor-col-resize items-center justify-center"
+                >
+                  <div className="h-3.5 w-px bg-black/10 transition-colors group-hover:bg-blue-500 dark:bg-white/15" />
+                </div>
               )}
             </div>
           )

@@ -7,10 +7,10 @@ interface FilterBarProps {
 const QUICK_EXTS = ['', 'pdf', 'docx', 'xlsx', 'png', 'jpg', 'mp4', 'mp3', 'zip', 'md', 'ts']
 const LABELS: Record<string, string> = { '': '全部' }
 
-/** 扩展名快速筛选栏。 */
+/** 扩展名快速筛选栏（圆角 pill）。 */
 export function FilterBar({ ext, onExt }: FilterBarProps): JSX.Element {
   return (
-    <div className="no-drag flex items-center gap-1 overflow-x-auto border-b border-black/10 px-3 py-1.5 dark:border-white/10">
+    <div className="no-drag flex items-center gap-1.5 overflow-x-auto border-b border-black/[0.07] px-3 py-2 dark:border-white/10">
       {QUICK_EXTS.map((value) => {
         const active = ext === value
         return (
@@ -18,10 +18,10 @@ export function FilterBar({ ext, onExt }: FilterBarProps): JSX.Element {
             key={value || 'all'}
             type="button"
             onClick={() => onExt(value)}
-            className={`shrink-0 rounded px-2 py-0.5 text-xs ${
+            className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
               active
-                ? 'bg-blue-500 text-white'
-                : 'text-zinc-500 hover:bg-black/5 dark:text-zinc-400 dark:hover:bg-white/10'
+                ? 'bg-blue-500 text-white shadow-sm'
+                : 'bg-black/[0.04] text-zinc-500 hover:bg-black/[0.08] dark:bg-white/[0.06] dark:text-zinc-400 dark:hover:bg-white/10'
             }`}
           >
             {LABELS[value] ?? value.toUpperCase()}
