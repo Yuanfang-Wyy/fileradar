@@ -36,6 +36,15 @@ const api: IpcRendererApi = {
   dialog: {
     pickDir: (): Promise<string[]> => ipcRenderer.invoke(IPC.DIALOG.PICK_DIR),
   },
+  menu: {
+    onAction: (cb) => {
+      const listener = (_event: IpcRendererEvent, action: string): void => cb(action)
+      ipcRenderer.on(IPC.MENU.ACTION, listener)
+      return () => {
+        ipcRenderer.removeListener(IPC.MENU.ACTION, listener)
+      }
+    },
+  },
 }
 
 contextBridge.exposeInMainWorld('fileRadar', api)

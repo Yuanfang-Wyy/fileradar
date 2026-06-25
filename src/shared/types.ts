@@ -12,6 +12,12 @@ export interface FileRecord {
   isDir: boolean // 是否为目录
 }
 
+/** 可排序的列。 */
+export type SortColumn = 'name' | 'path' | 'size' | 'mtime'
+
+/** 排序方向。 */
+export type SortOrder = 'asc' | 'desc'
+
 /** 一次搜索请求的参数。 */
 export interface SearchQuery {
   keyword: string
@@ -20,6 +26,8 @@ export interface SearchQuery {
   maxSize?: number
   startTime?: number
   endTime?: number
+  sortBy?: SortColumn // 排序列；缺省时有关键词按相关度、否则按修改时间倒序
+  sortOrder?: SortOrder
   limit: number // 默认 200
   offset: number
 }

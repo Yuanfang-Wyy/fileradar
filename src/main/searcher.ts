@@ -1,6 +1,6 @@
 import { performance } from 'node:perf_hooks'
 import type { AppDatabase } from './db'
-import type { FileRecord, SearchQuery, SearchResult } from '@shared/types'
+import type { FileRecord, SearchQuery, SearchResult, SortColumn } from '@shared/types'
 
 // 数据库行（snake_case）形状，用于映射到对外的 FileRecord（camelCase）。
 interface FileRow {
@@ -73,9 +73,30 @@ export function buildFilters(query: SearchQuery): FilterClause {
   return { sql: clauses.join(' AND '), params }
 }
 
+const SORT_COLUMNS: Record<SortColumn, string> = {
+  name: 'files.name',
+  path: 'files.path',
+  size: 'files.size',
+  mtime: 'files.mtime',
+}
+
 /**
- * 执行一次搜索：有 keyword 时走 FTS5 MATCH 并按相关度（rank）排序，
- * 无 keyword 时仅按筛选条件并以修改时间倒序返回。
+ * 构造 ORDER BY 子句：用户指定排序列时优先（名称/路径不区分大小写）；
+ * 否则有全文匹配按相关度 rank、无匹配按修改时间倒序。纯函数，便于测试。
+ */
+export function buildOrderBy(query: SearchQuery, hasMatch: boolean): string {
+  if (query.sortBy) {
+    const column = SORT_COLUMNS[query.sortBy]
+    const direction = query.sortOrder === 'asc' ? 'ASC' : 'DESC'
+    const collate = query.sortBy === 'name' || query.sortBy === 'path' ? ' COLLATE NOCASE' : ''
+    return `ORDER BY ${column}${collate} ${direction}`
+  }
+  return hasMatch ? 'ORDER BY files_fts.rank' : 'ORDER BY files.mtime DESC'
+}
+
+/**
+ * 执行一次搜索：有 keyword 时走 FTS5 MATCH，无 keyword 时仅按筛选条件；
+ * 排序由 buildOrderBy 决定（用户指定列 > 相关度 > 修改时间倒序）。
  */
 export function search(db: AppDatabase, query: SearchQuery): SearchResult {
   const start = performance.now()
@@ -98,7 +119,7 @@ export function search(db: AppDatabase, query: SearchQuery): SearchResult {
   // 有全文匹配时 JOIN FTS 索引并按 rank 排序；否则直接查主表按 mtime 倒序。
   const fromSql =
     match !== null ? 'FROM files JOIN files_fts ON files.id = files_fts.rowid' : 'FROM files'
-  const orderSql = match !== null ? 'ORDER BY files_fts.rank' : 'ORDER BY files.mtime DESC'
+  const orderSql = buildOrderBy(query, match !== null)
 
   const totalRow = db
     .prepare(`SELECT COUNT(*) AS n ${fromSql} ${whereSql}`)

@@ -280,6 +280,7 @@ END;
 ## 七、当前状态
 
 **当前阶段**：Phase 6 — 打包（未开始）  
+**最新（对标 Everything 增强）**：结果列表改为多列表格（名称/路径/大小/**修改时间**），列头点击排序（升降箭头，名称/路径 COLLATE NOCASE）；新增结果项右键菜单（Finder 显示/打开/复制路径名）；新增 Mac 应用菜单栏 `src/main/menu.ts`（文件/编辑/视图/搜索/工具/帮助，经 `IPC.MENU.ACTION` 推送驱动 renderer）；`SearchQuery` 加 `sortBy/sortOrder`，searcher 加 `buildOrderBy`。27 个测试全过（新增排序 6 个）。仍待办（Everything 高级特性）：列宽拖拽、书签/保存搜索、正则等高级搜索语法。  
 **最后更新**：Phase 5 完成 —— 系统集成。新增 `src/main/tray.ts`（托盘：左键切换窗口/右键菜单）、`src/main/system.ts`（全局快捷键 + 开机自启）、`resources/tray-icon.png`（Pillow 生成的放大镜 template 图标）。index.ts 集成：托盘常驻、关闭仅隐藏、生产模式失焦隐藏（dev 禁用）、退出清理（注销快捷键/关 watcher/关 db/销毁托盘）。**默认快捷键由 Cmd+Space 改为 Cmd+Shift+Space**（前者被 Spotlight 占用）。启动验证：main build 15.79 kB、「主进程已启动」无崩溃（托盘/快捷键/自启均执行）、typecheck 全绿；托盘图标 GUI 未截图（dev 后台进程被回收），建议正常终端 `pnpm dev` 查看菜单栏。
 
 **Phase 4 完成**：完整 UI（组件拆分 + @tanstack/react-virtual 虚拟滚动 + 键盘导航 + 设置面板），GUI 实测 106 万文件索引、242ms 搜索。新增 `IPC.DIALOG.PICK_DIR`。

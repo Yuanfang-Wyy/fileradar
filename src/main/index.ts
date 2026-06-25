@@ -6,6 +6,7 @@ import { openDatabase, type AppDatabase } from './db'
 import { registerIpcHandlers, runIndexing, stopWatcher } from './ipcHandlers'
 import { createTray, destroyTray } from './tray'
 import { applyAutoLaunch, registerGlobalShortcut } from './system'
+import { buildAppMenu } from './menu'
 import { getSettings } from './settings'
 
 log.initialize()
@@ -96,13 +97,15 @@ app.whenReady().then(() => {
   db = openDatabase(join(app.getPath('userData'), 'fileradar.db'))
   registerIpcHandlers(db, getWindow, applySystemSettings)
   createWindow()
+  const reindex = (): void => {
+    if (db) runIndexing(db, getWindow)
+  }
   createTray({
     onToggle: toggleWindow,
-    onReindex: () => {
-      if (db) runIndexing(db, getWindow)
-    },
+    onReindex: reindex,
     onQuit: () => app.quit(),
   })
+  buildAppMenu({ getWindow, onReindex: reindex })
   applySystemSettings(getSettings())
 
   app.on('activate', () => {

@@ -24,6 +24,9 @@ export const IPC = {
   DIALOG: {
     PICK_DIR: 'dialog:pickDir',
   },
+  MENU: {
+    ACTION: 'menu:action',
+  },
 } as const
 
 /**
@@ -51,5 +54,9 @@ export interface IpcRendererApi {
   }
   dialog: {
     pickDir: () => Promise<string[]>
+  }
+  menu: {
+    /** 订阅应用菜单触发的动作（如 focus-search、open-settings、sort:name）。 */
+    onAction: (cb: (action: string) => void) => () => void
   }
 }

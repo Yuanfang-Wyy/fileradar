@@ -1,11 +1,21 @@
 import type { CSSProperties } from 'react'
 import type { FileRecord } from '@shared/types'
 
+// 名称 | 路径 | 大小 | 修改时间。列头与每行共用此模板以保证对齐。
+export const GRID_COLS = 'minmax(150px, 1.2fr) minmax(180px, 2fr) 96px 150px'
+
 export function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
   if (bytes < 1024 ** 3) return `${(bytes / 1024 / 1024).toFixed(1)} MB`
   return `${(bytes / 1024 ** 3).toFixed(1)} GB`
+}
+
+export function formatTime(ms: number): string {
+  if (!ms) return ''
+  const d = new Date(ms)
+  const p = (n: number): string => String(n).padStart(2, '0')
+  return `${d.getFullYear()}/${p(d.getMonth() + 1)}/${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`
 }
 
 const IMAGE = new Set(['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'heic', 'bmp', 'ico'])
@@ -32,28 +42,40 @@ interface ResultItemProps {
   style: CSSProperties
   onSelect: () => void
   onActivate: () => void
+  onContextMenu: (event: React.MouseEvent) => void
 }
 
-/** 单条搜索结果：图标 + 文件名 + 路径 + 大小。双击/激活在 Finder 中显示。 */
-export function ResultItem({ file, selected, style, onSelect, onActivate }: ResultItemProps): JSX.Element {
+/** 表格化的单条结果：名称（图标+名）| 路径 | 大小 | 修改时间。 */
+export function ResultItem({
+  file,
+  selected,
+  style,
+  onSelect,
+  onActivate,
+  onContextMenu,
+}: ResultItemProps): JSX.Element {
   return (
     <div
-      style={style}
+      style={{ ...style, display: 'grid', gridTemplateColumns: GRID_COLS, alignItems: 'center' }}
       onClick={onSelect}
       onDoubleClick={onActivate}
-      title={`双击在 Finder 中显示\n${file.path}`}
-      className={`flex cursor-default items-center gap-3 px-4 text-sm ${
+      onContextMenu={onContextMenu}
+      title={file.path}
+      className={`cursor-default text-sm ${
         selected ? 'bg-blue-500/15 dark:bg-blue-400/20' : 'hover:bg-black/5 dark:hover:bg-white/5'
       }`}
     >
-      <span className="shrink-0">{iconFor(file)}</span>
-      <span className="shrink-0 truncate font-medium" style={{ maxWidth: '40%' }}>
-        {file.name}
+      <span className="flex items-center gap-2 truncate px-3">
+        <span className="shrink-0">{iconFor(file)}</span>
+        <span className="truncate">{file.name}</span>
       </span>
-      <span className="flex-1 truncate text-xs text-zinc-400">{file.path}</span>
-      {!file.isDir && (
-        <span className="shrink-0 text-xs tabular-nums text-zinc-400">{formatSize(file.size)}</span>
-      )}
+      <span className="truncate px-2 text-xs text-zinc-400">{file.path}</span>
+      <span className="px-2 text-right text-xs tabular-nums text-zinc-400">
+        {file.isDir ? '—' : formatSize(file.size)}
+      </span>
+      <span className="px-3 text-right text-xs tabular-nums text-zinc-400">
+        {formatTime(file.mtime)}
+      </span>
     </div>
   )
 }

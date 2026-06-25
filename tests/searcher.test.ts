@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { openDatabase, makeUpsert, type AppDatabase, type FileInput } from '../src/main/db'
-import { buildFtsMatch, buildFilters, search } from '../src/main/searcher'
+import { buildFtsMatch, buildFilters, buildOrderBy, search } from '../src/main/searcher'
 
 function file(over: Partial<FileInput> & { path: string; name: string }): FileInput {
   return { ext: '', size: 0, mtime: 0, isDir: false, ...over }
@@ -87,5 +87,39 @@ describe('search (集成 :memory:)', () => {
   it('is_dir 映射为布尔 isDir', () => {
     const r = search(makeDb(), { keyword: 'photo', limit: 10, offset: 0 })
     expect(r.items[0]?.isDir).toBe(false)
+  })
+
+  it('按名称升序排序（不区分大小写）', () => {
+    const r = search(makeDb(), { keyword: '', sortBy: 'name', sortOrder: 'asc', limit: 50, offset: 0 })
+    expect(r.items.map((i) => i.name)).toEqual([
+      'annual_report_2024.pdf',
+      'photo.jpg',
+      'report_draft.txt',
+    ])
+  })
+
+  it('按大小降序排序', () => {
+    const r = search(makeDb(), { keyword: '', sortBy: 'size', sortOrder: 'desc', limit: 50, offset: 0 })
+    expect(r.items.map((i) => i.size)).toEqual([2000, 1000, 50])
+  })
+})
+
+describe('buildOrderBy', () => {
+  const base = { keyword: '', limit: 10, offset: 0 }
+  it('无排序列 + 有匹配 → 相关度 rank', () => {
+    expect(buildOrderBy({ ...base }, true)).toBe('ORDER BY files_fts.rank')
+  })
+  it('无排序列 + 无匹配 → 修改时间倒序', () => {
+    expect(buildOrderBy({ ...base }, false)).toBe('ORDER BY files.mtime DESC')
+  })
+  it('名称升序用 COLLATE NOCASE', () => {
+    expect(buildOrderBy({ ...base, sortBy: 'name', sortOrder: 'asc' }, false)).toBe(
+      'ORDER BY files.name COLLATE NOCASE ASC',
+    )
+  })
+  it('大小降序', () => {
+    expect(buildOrderBy({ ...base, sortBy: 'size', sortOrder: 'desc' }, true)).toBe(
+      'ORDER BY files.size DESC',
+    )
   })
 })
