@@ -1,0 +1,6 @@
+# pnpm 11+ 用 allowBuilds 决定哪些依赖可执行安装脚本（取代旧的 onlyBuiltDependencies）。
+# 单包项目同样把该设置放在 pnpm-workspace.yaml。值为布尔：true 允许、false 禁止。
+allowBuilds:
+  electron: true # postinstall：下载 Electron 运行时二进制（dev 启动必需）
+  esbuild: true # postinstall：安装当前平台原生二进制（Vite 构建必需）
+  better-sqlite3: false # Phase 1 不在 node 端编译；Phase 2 经 @electron/rebuild 针对 Electron 编译
