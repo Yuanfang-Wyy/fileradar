@@ -1,4 +1,4 @@
-import { BrowserWindow, ipcMain, shell } from 'electron'
+import { BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import log from 'electron-log/main'
 import type { FSWatcher } from 'chokidar'
 import { IPC } from '@shared/ipc'
@@ -62,4 +62,17 @@ export function registerIpcHandlers(
       throw new Error(`无法打开文件：${error}`)
     }
   })
+
+  // 目录选择对话框：设置面板添加监听目录用，返回所选目录路径（取消返回空数组）
+  ipcMain.handle(IPC.DIALOG.PICK_DIR, async () => {
+    const options: Electron.OpenDialogOptions = {
+      properties: ['openDirectory', 'multiSelections', 'createDirectory'],
+    }
+    const win = getWindow()
+    const result = win
+      ? await dialog.showOpenDialog(win, options)
+      : await dialog.showOpenDialog(options)
+    return result.canceled ? [] : result.filePaths
+  })
 }
+

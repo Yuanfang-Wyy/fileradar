@@ -33,6 +33,9 @@ const api: IpcRendererApi = {
     reveal: (path: string) => ipcRenderer.invoke(IPC.FILE.REVEAL, path),
     open: (path: string) => ipcRenderer.invoke(IPC.FILE.OPEN, path),
   },
+  dialog: {
+    pickDir: (): Promise<string[]> => ipcRenderer.invoke(IPC.DIALOG.PICK_DIR),
+  },
 }
 
 contextBridge.exposeInMainWorld('fileRadar', api)

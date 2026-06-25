@@ -253,14 +253,14 @@ END;
 - [x] preload 暴露完整 API
 - [x] 渲染进程 hooks 对接 IPC
 
-### Phase 4：UI 层
+### Phase 4：UI 层 ✅
 
-- [ ] `SearchBar.tsx`：cmdk 搜索框，自动聚焦
-- [ ] `ResultList.tsx`：虚拟滚动列表
-- [ ] `ResultItem.tsx`：图标 + 文件名 + 路径 + 大小
-- [ ] `FilterBar.tsx`：文件类型快速筛选
-- [ ] `StatusBar.tsx`：索引统计 + 搜索耗时
-- [ ] `Settings.tsx`：目录配置、快捷键设置
+- [x] `SearchBar.tsx`：自动聚焦搜索框（见下方 cmdk 取舍）
+- [x] `ResultList.tsx`：虚拟滚动列表（@tanstack/react-virtual）
+- [x] `ResultItem.tsx`：图标 + 文件名 + 路径 + 大小
+- [x] `FilterBar.tsx`：文件类型快速筛选（扩展名）
+- [x] `StatusBar.tsx`：索引统计 + 搜索耗时
+- [x] `Settings.tsx`：目录配置（dialog 选择）、快捷键、自启、结果上限
 
 ### Phase 5：系统集成
 
@@ -279,10 +279,14 @@ END;
 
 ## 七、当前状态
 
-**当前阶段**：Phase 4 — UI 层（未开始）  
-**最后更新**：Phase 3 完成 —— app 端到端可索引+搜索。main 初始化 db、ipcHandlers 接通 search/settings/index（索引后台执行+进度推送+watcher 生命周期）、renderer hooks（useSearch 防抖 / useIndex 订阅进度 / useSettings）+ App 最小搜索 UI。新增 `src/main/settings.ts`（electron-store 持久化，属 CLAUDE.md 目录外）。在 Electron runtime 端到端验证通过：ABI 119、索引 27 个真实文件、FTS5 搜索命中正确；typecheck 全绿。
+**当前阶段**：Phase 5 — 系统集成（未开始）  
+**最后更新**：Phase 4 完成 —— 完整 UI 上线，GUI 实测通过：已索引 **106 万真实文件**、搜索 242ms 返回、虚拟滚动列表/筛选栏/状态栏/设置面板均正常。组件拆分（SearchBar/FilterBar/ResultList/ResultItem/StatusBar/Settings）+ App 编排键盘导航（↑↓/Enter 在 Finder 显示/Esc）。新增 `IPC.DIALOG.PICK_DIR`（目录选择对话框，设置面板加监听目录用）。
 
-⚠️ 当前状态注意：① better-sqlite3 现为 **Electron 版本**（rebuild:electron 后），跑 `pnpm test` 前须先 `pnpm rebuild` 切回 node 版本；② **沙箱环境下 Electron 无法创建 GUI 窗口**（启动即 `Command failed` 退出），需在正常终端跑 `pnpm dev`；③ renderer UI 渲染与 IPC 往返尚未做 GUI 验证（验证时屏幕锁定），Phase 4 补。
+**cmdk 取舍**：CLAUDE.md 原定 SearchBar 用 cmdk，但 cmdk 的命令列表导航假设所有 item 已渲染，与「只渲染可见行」的虚拟滚动（十万级结果必需）冲突。取舍：SearchBar 用受控 input（cmdk 视觉风格）+ 自定义键盘导航，结果列表用 @tanstack/react-virtual。cmdk 依赖暂保留，未深度使用。
+
+**Phase 3 完成内容**：main 初始化 db、ipcHandlers 接通 search/settings/index（索引后台+进度推送+watcher 生命周期）、renderer hooks（useSearch/useIndex/useSettings）、新增 `src/main/settings.ts`（electron-store 持久化，CLAUDE.md 目录外）、Electron 版本 better-sqlite3（ABI 119，runtime 端到端验证索引+FTS5 通过）。
+
+⚠️ 当前状态注意：① better-sqlite3 现为 **Electron 版本**（rebuild:electron 后），跑 `pnpm test` 前须先 `pnpm rebuild` 切回 node 版本；② **沙箱环境下 Electron 无法创建 GUI 窗口**（启动即 `Command failed` 退出），需在正常终端跑 `pnpm dev`；③ Phase 4 已完成 GUI 实测（106 万文件索引 + 毫秒级搜索 + 完整 UI），renderer/IPC 端到端确认正常。
 
 Phase 1-2 遗留约定（仍有效）：preload 在 `src/main/preload.ts`；pnpm 用 `pnpm-workspace.yaml` 的 `allowBuilds` + `blockExoticSubdeps:false`；`electron-builder` 推迟至 Phase 6；electron 二进制/headers 经 `ELECTRON_MIRROR=npmmirror`。
 

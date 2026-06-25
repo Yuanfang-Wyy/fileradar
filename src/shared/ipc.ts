@@ -21,6 +21,9 @@ export const IPC = {
     REVEAL: 'file:reveal',
     OPEN: 'file:open',
   },
+  DIALOG: {
+    PICK_DIR: 'dialog:pickDir',
+  },
 } as const
 
 /**
@@ -45,5 +48,8 @@ export interface IpcRendererApi {
   file: {
     reveal: (path: string) => Promise<void>
     open: (path: string) => Promise<void>
+  }
+  dialog: {
+    pickDir: () => Promise<string[]>
   }
 }
