@@ -20,11 +20,10 @@ export const DEFAULT_EXCLUDE_PATTERNS: string[] = [
 ]
 
 /**
- * 默认全局快捷键。
- * 注意：Cmd+Space 与 macOS Spotlight 冲突，注册大概率失败，
- * Phase 5 需要提供注册失败时的回退提示与可配置项。
+ * 默认全局快捷键。Cmd+Space 被 macOS Spotlight 占用无法注册，故默认改用
+ * Cmd+Shift+Space；用户可在设置中改为其它组合键（注册失败仅记录日志，不影响其它功能）。
  */
-export const DEFAULT_GLOBAL_SHORTCUT = 'CommandOrControl+Space'
+export const DEFAULT_GLOBAL_SHORTCUT = 'CommandOrControl+Shift+Space'
 
 /**
  * 默认应用配置。watchDirs 留空，由主进程在首次启动时填入用户主目录

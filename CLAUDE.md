@@ -262,12 +262,12 @@ END;
 - [x] `StatusBar.tsx`：索引统计 + 搜索耗时
 - [x] `Settings.tsx`：目录配置（dialog 选择）、快捷键、自启、结果上限
 
-### Phase 5：系统集成
+### Phase 5：系统集成 ✅
 
-- [ ] `tray.ts`：系统托盘 + 右键菜单
-- [ ] 全局快捷键注册
-- [ ] 开机自启动（`app.setLoginItemSettings`）
-- [ ] 窗口失焦自动隐藏
+- [x] `tray.ts`：系统托盘 + 右键菜单（左键切换窗口/右键菜单）
+- [x] 全局快捷键注册（`system.ts`，注册失败仅记录日志）
+- [x] 开机自启动（`app.setLoginItemSettings`）
+- [x] 窗口失焦自动隐藏（生产模式；dev 禁用便于调试）
 
 ### Phase 6：打包
 
@@ -279,8 +279,10 @@ END;
 
 ## 七、当前状态
 
-**当前阶段**：Phase 5 — 系统集成（未开始）  
-**最后更新**：Phase 4 完成 —— 完整 UI 上线，GUI 实测通过：已索引 **106 万真实文件**、搜索 242ms 返回、虚拟滚动列表/筛选栏/状态栏/设置面板均正常。组件拆分（SearchBar/FilterBar/ResultList/ResultItem/StatusBar/Settings）+ App 编排键盘导航（↑↓/Enter 在 Finder 显示/Esc）。新增 `IPC.DIALOG.PICK_DIR`（目录选择对话框，设置面板加监听目录用）。
+**当前阶段**：Phase 6 — 打包（未开始）  
+**最后更新**：Phase 5 完成 —— 系统集成。新增 `src/main/tray.ts`（托盘：左键切换窗口/右键菜单）、`src/main/system.ts`（全局快捷键 + 开机自启）、`resources/tray-icon.png`（Pillow 生成的放大镜 template 图标）。index.ts 集成：托盘常驻、关闭仅隐藏、生产模式失焦隐藏（dev 禁用）、退出清理（注销快捷键/关 watcher/关 db/销毁托盘）。**默认快捷键由 Cmd+Space 改为 Cmd+Shift+Space**（前者被 Spotlight 占用）。启动验证：main build 15.79 kB、「主进程已启动」无崩溃（托盘/快捷键/自启均执行）、typecheck 全绿；托盘图标 GUI 未截图（dev 后台进程被回收），建议正常终端 `pnpm dev` 查看菜单栏。
+
+**Phase 4 完成**：完整 UI（组件拆分 + @tanstack/react-virtual 虚拟滚动 + 键盘导航 + 设置面板），GUI 实测 106 万文件索引、242ms 搜索。新增 `IPC.DIALOG.PICK_DIR`。
 
 **cmdk 取舍**：CLAUDE.md 原定 SearchBar 用 cmdk，但 cmdk 的命令列表导航假设所有 item 已渲染，与「只渲染可见行」的虚拟滚动（十万级结果必需）冲突。取舍：SearchBar 用受控 input（cmdk 视觉风格）+ 自定义键盘导航，结果列表用 @tanstack/react-virtual。cmdk 依赖暂保留，未深度使用。
 
