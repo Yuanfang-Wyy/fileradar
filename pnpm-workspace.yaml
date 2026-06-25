@@ -3,4 +3,4 @@
 allowBuilds:
   electron: true # postinstall：下载 Electron 运行时二进制（dev 启动必需）
   esbuild: true # postinstall：安装当前平台原生二进制（Vite 构建必需）
-  better-sqlite3: false # Phase 1 不在 node 端编译；Phase 2 经 @electron/rebuild 针对 Electron 编译
+  better-sqlite3: true # Phase 2：编译 node 版本供 Vitest 测试；app 运行用 electron-rebuild 切换
