@@ -1,4 +1,4 @@
-import { app, globalShortcut } from 'electron'
+import { app, globalShortcut, systemPreferences } from 'electron'
 import log from 'electron-log/main'
 import { GlobalKeyboardListener } from 'node-global-key-listener'
 import type { AppSettings } from '@shared/types'
@@ -44,6 +44,17 @@ export function registerDoubleCmd(onTrigger: () => void): void {
   if (keyListener) {
     return
   }
+  // 监听全局键盘需要 macOS 辅助功能权限。主动检查，未授权时（首次）弹出系统授权对话框，
+  // 引导用户到「系统设置 → 隐私与安全性 → 辅助功能」勾选本应用。
+  if (process.platform === 'darwin') {
+    const trusted = systemPreferences.isTrustedAccessibilityClient(true)
+    if (!trusted) {
+      log.warn(
+        '尚未获得辅助功能权限，双击 Cmd 唤起暂不可用。请在弹出的对话框或「系统设置 → 隐私与安全性 → 辅助功能」中勾选本应用，然后重启应用。',
+      )
+    }
+  }
+
   let lastCmdUp = 0
   let sawOtherKey = false
   try {
@@ -57,6 +68,7 @@ export function registerDoubleCmd(onTrigger: () => void): void {
       if (event.state === 'UP' && isCmd) {
         const now = Date.now()
         if (now - lastCmdUp < DOUBLE_TAP_MS && !sawOtherKey) {
+          log.info('检测到双击 Cmd，切换窗口显隐')
           onTrigger()
           lastCmdUp = 0
         } else {

@@ -41,7 +41,7 @@ pnpm typecheck        # 类型检查
 pnpm build            # 构建并打包 macOS DMG（产物在 release/）
 ```
 
-> **双 ABI 注意**：better-sqlite3 是原生模块。测试跑在系统 Node（`pnpm rebuild`），打包/运行 app 用 Electron ABI（`pnpm rebuild:electron`）。详见 [CLAUDE.md](./CLAUDE.md)。
+> **双 ABI 注意**：better-sqlite3 是原生模块。测试跑在系统 Node（`pnpm rebuild`），打包/运行 app 用 Electron ABI（`pnpm rebuild:electron`）。
 
 ## 🏗 架构
 
