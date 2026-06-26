@@ -269,17 +269,19 @@ END;
 - [x] 开机自启动（`app.setLoginItemSettings`）
 - [x] 窗口失焦自动隐藏（生产模式；dev 禁用便于调试）
 
-### Phase 6：打包
+### Phase 6：打包 ✅
 
-- [ ] electron-builder 配置（Mac DMG）
-- [ ] 代码签名配置（占位）
-- [ ] 图标资源
+- [x] electron-builder 配置（Mac DMG）
+- [x] 代码签名配置（占位：identity null + ad-hoc）
+- [x] 图标资源（resources/icon.png）
 
 ---
 
 ## 七、当前状态
 
-**当前阶段**：Phase 6 — 打包（未开始）  
+**当前阶段**：✅ 全部 6 个 Phase + Everything 对标完成。`pnpm build` 产出 `release/FileRadar-0.1.0-arm64.dmg`（97MB / arm64 / ad-hoc 签名）。
+
+**Phase 6 打包坑（重要）**：electron-builder 24 因 `app-builder-bin@4.0.0` 下载超时（npmjs/npmmirror 都超时）装不上，改用 26；但 26.15.3 声明 `@electron/get ^3.0.0` 却用了 3.1+ 的 `ElectronDownloadCacheMode`，导致打包报 `Cannot read properties of undefined (reading 'ReadWrite')`，靠 `pnpm-workspace.yaml` 的 `overrides` 强制 `@electron/get ^3.1.0` 修复。asarUnpack 必须解包 `better-sqlite3`(.node) 与 `node-global-key-listener`(MacKeyServer)，否则装机后无法搜索/双击 Cmd。未正式签名（identity null + ad-hoc），首次打开需右键 →「打开」绕过 Gatekeeper。  
 **最新（对标 Everything 增强）**：结果列表改为多列表格（名称/路径/大小/**修改时间**），列头点击排序（升降箭头，名称/路径 COLLATE NOCASE）；新增结果项右键菜单（Finder 显示/打开/复制路径名）；新增 Mac 应用菜单栏 `src/main/menu.ts`（文件/编辑/视图/搜索/工具/帮助，经 `IPC.MENU.ACTION` 推送驱动 renderer）；`SearchQuery` 加 `sortBy/sortOrder`，searcher 加 `buildOrderBy`。27 个测试全过（新增排序 6 个）。**高级交互**：列宽可拖拽调整（列头分隔条，localStorage 持久化）、双击/Enter 用默认程序打开文件（「在 Finder 显示」移到右键菜单）、记住上次排序列/扩展名筛选（localStorage）。仍待办：书签/保存搜索、正则等高级搜索语法、Phase 6 打包。  
 **最后更新**：Phase 5 完成 —— 系统集成。新增 `src/main/tray.ts`（托盘：左键切换窗口/右键菜单）、`src/main/system.ts`（全局快捷键 + 开机自启）、`resources/tray-icon.png`（Pillow 生成的放大镜 template 图标）。index.ts 集成：托盘常驻、关闭仅隐藏、生产模式失焦隐藏（dev 禁用）、退出清理（注销快捷键/关 watcher/关 db/销毁托盘）。**默认快捷键由 Cmd+Space 改为 Cmd+Shift+Space**（前者被 Spotlight 占用）。启动验证：main build 15.79 kB、「主进程已启动」无崩溃（托盘/快捷键/自启均执行）、typecheck 全绿；托盘图标 GUI 未截图（dev 后台进程被回收），建议正常终端 `pnpm dev` 查看菜单栏。
 

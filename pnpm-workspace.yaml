@@ -8,3 +8,9 @@ allowBuilds:
   electron: true # postinstall：下载 Electron 运行时二进制（dev 启动必需）
   esbuild: true # postinstall：安装当前平台原生二进制（Vite 构建必需）
   better-sqlite3: true # Phase 2：编译 node 版本供 Vitest 测试；app 运行用 electron-rebuild 切换
+  electron-winstaller: false # 仅 Windows 安装器需要，本项目只打 macOS DMG
+
+# electron-builder 26 代码用了 @electron/get 的 ElectronDownloadCacheMode（3.1+ 才有），
+# 但其依赖声明 ^3.0.0 会解析到缺该导出的 3.0.0，故强制升到 3.1+。
+overrides:
+  '@electron/get': '^3.1.0'
