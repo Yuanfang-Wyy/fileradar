@@ -8,8 +8,23 @@ import {
   makeExcludeMatcher,
   extractFileMeta,
   startIndexing,
+  toPinyin,
 } from '../src/main/indexer'
 import { DEFAULT_EXCLUDE_PATTERNS } from '../src/shared/constants'
+
+describe('toPinyin', () => {
+  it('中文转拼音首字母 + 全拼', () => {
+    const r = toPinyin('移动底座')
+    expect(r).toContain('yddz')
+    expect(r).toContain('yidongdizuo')
+  })
+  it('纯英文返回空串', () => {
+    expect(toPinyin('annual_report.pdf')).toBe('')
+  })
+  it('中英混合只取中文部分', () => {
+    expect(toPinyin('移动report')).toContain('yd')
+  })
+})
 
 describe('globToRegExp / makeExcludeMatcher', () => {
   it('** 跨目录匹配子路径', () => {

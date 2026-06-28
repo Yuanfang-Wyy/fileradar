@@ -4,11 +4,8 @@ import type { FileRecord } from '@shared/types'
 // 数据库实例类型别名，供其他模块（indexer/searcher）以类型安全方式接收连接。
 export type AppDatabase = Database.Database
 
-// Schema 见 CLAUDE.md 第四节 4.4：
-//   - files：主表，path 唯一
-//   - files_fts：FTS5 外部内容索引（content='files'），对 name/path 建全文索引
-//   - 三个触发器（ai/ad/au）保持 FTS 与主表增删改同步
-// 额外加了 ext/mtime/size 普通索引，用于筛选与排序（不在原 schema 中，属性能优化）。
+// Schema：files 主表 + files_fts（FTS5 外部内容索引，对 name/path/pinyin 全文索引）+ 同步触发器。
+// pinyin 列存文件名的拼音首字母与全拼，使「yddz」「yidong」能命中「移动底座」。
 const SCHEMA_SQL = `
 CREATE TABLE IF NOT EXISTS files (
   id     INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -17,7 +14,8 @@ CREATE TABLE IF NOT EXISTS files (
   ext    TEXT NOT NULL DEFAULT '',
   size   INTEGER NOT NULL DEFAULT 0,
   mtime  INTEGER NOT NULL DEFAULT 0,
-  is_dir INTEGER NOT NULL DEFAULT 0
+  is_dir INTEGER NOT NULL DEFAULT 0,
+  pinyin TEXT NOT NULL DEFAULT ''
 );
 
 CREATE INDEX IF NOT EXISTS idx_files_ext   ON files(ext);
@@ -27,31 +25,37 @@ CREATE INDEX IF NOT EXISTS idx_files_size  ON files(size);
 CREATE VIRTUAL TABLE IF NOT EXISTS files_fts USING fts5(
   name,
   path,
+  pinyin,
   content='files',
   content_rowid='id'
 );
 
 CREATE TRIGGER IF NOT EXISTS files_ai AFTER INSERT ON files BEGIN
-  INSERT INTO files_fts(rowid, name, path) VALUES (new.id, new.name, new.path);
+  INSERT INTO files_fts(rowid, name, path, pinyin) VALUES (new.id, new.name, new.path, new.pinyin);
 END;
 
 CREATE TRIGGER IF NOT EXISTS files_ad AFTER DELETE ON files BEGIN
-  INSERT INTO files_fts(files_fts, rowid, name, path) VALUES('delete', old.id, old.name, old.path);
+  INSERT INTO files_fts(files_fts, rowid, name, path, pinyin) VALUES('delete', old.id, old.name, old.path, old.pinyin);
 END;
 
 CREATE TRIGGER IF NOT EXISTS files_au AFTER UPDATE ON files BEGIN
-  INSERT INTO files_fts(files_fts, rowid, name, path) VALUES('delete', old.id, old.name, old.path);
-  INSERT INTO files_fts(rowid, name, path) VALUES (new.id, new.name, new.path);
+  INSERT INTO files_fts(files_fts, rowid, name, path, pinyin) VALUES('delete', old.id, old.name, old.path, old.pinyin);
+  INSERT INTO files_fts(rowid, name, path, pinyin) VALUES (new.id, new.name, new.path, new.pinyin);
 END;
 `
 
 /**
- * 在给定连接上创建/迁移 schema，并设置适合「大量写入 + 频繁查询」桌面索引场景的 PRAGMA。
- * 与 openDatabase 分离，便于测试直接传入 :memory: 连接。
+ * 在给定连接上创建/迁移 schema 并设置 PRAGMA。
+ * 迁移：检测到旧表（无 pinyin 列）则丢弃重建（开发期简单策略，用户重建一次索引）。
  */
 export function createSchema(db: AppDatabase): void {
-  db.pragma('journal_mode = WAL') // 读写并发：索引写入不阻塞搜索读取
-  db.pragma('synchronous = NORMAL') // WAL 下兼顾安全与吞吐
+  db.pragma('journal_mode = WAL')
+  db.pragma('synchronous = NORMAL')
+
+  const columns = db.prepare('PRAGMA table_info(files)').all() as { name: string }[]
+  if (columns.length > 0 && !columns.some((c) => c.name === 'pinyin')) {
+    db.exec('DROP TABLE IF EXISTS files_fts; DROP TABLE IF EXISTS files;')
+  }
   db.exec(SCHEMA_SQL)
 }
 
@@ -65,8 +69,8 @@ export function openDatabase(filePath: string): AppDatabase {
   return db
 }
 
-// 写入参数：FileRecord 去掉自增 id。
-export type FileInput = Omit<FileRecord, 'id'>
+// 写入参数：FileRecord 去掉自增 id，附带 pinyin（仅入库供拼音匹配，不对外返回）。
+export type FileInput = Omit<FileRecord, 'id'> & { pinyin: string }
 
 /**
  * 返回绑定到该连接的 upsert 函数（内部复用 prepared statement）。
@@ -74,10 +78,10 @@ export type FileInput = Omit<FileRecord, 'id'>
  */
 export function makeUpsert(db: AppDatabase): (file: FileInput) => void {
   const stmt = db.prepare(
-    `INSERT INTO files (path, name, ext, size, mtime, is_dir)
-     VALUES (@path, @name, @ext, @size, @mtime, @is_dir)
+    `INSERT INTO files (path, name, ext, size, mtime, is_dir, pinyin)
+     VALUES (@path, @name, @ext, @size, @mtime, @is_dir, @pinyin)
      ON CONFLICT(path) DO UPDATE SET
-       name = @name, ext = @ext, size = @size, mtime = @mtime, is_dir = @is_dir`,
+       name = @name, ext = @ext, size = @size, mtime = @mtime, is_dir = @is_dir, pinyin = @pinyin`,
   )
   return (file: FileInput): void => {
     stmt.run({
@@ -87,6 +91,7 @@ export function makeUpsert(db: AppDatabase): (file: FileInput) => void {
       size: file.size,
       mtime: file.mtime,
       is_dir: file.isDir ? 1 : 0,
+      pinyin: file.pinyin,
     })
   }
 }

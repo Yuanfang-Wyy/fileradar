@@ -3,7 +3,7 @@ import { openDatabase, makeUpsert, type AppDatabase, type FileInput } from '../s
 import { buildFtsMatch, buildFilters, buildOrderBy, search } from '../src/main/searcher'
 
 function file(over: Partial<FileInput> & { path: string; name: string }): FileInput {
-  return { ext: '', size: 0, mtime: 0, isDir: false, ...over }
+  return { ext: '', size: 0, mtime: 0, isDir: false, pinyin: '', ...over }
 }
 
 function seed(db: AppDatabase, files: FileInput[]): void {
@@ -87,6 +87,16 @@ describe('search (集成 :memory:)', () => {
   it('is_dir 映射为布尔 isDir', () => {
     const r = search(makeDb(), { keyword: 'photo', limit: 10, offset: 0 })
     expect(r.items[0]?.isDir).toBe(false)
+  })
+
+  it('拼音首字母匹配中文文件名', () => {
+    const db = openDatabase(':memory:')
+    seed(db, [
+      file({ path: '/x/移动底座.docx', name: '移动底座.docx', ext: 'docx', pinyin: 'yddz yidongdizuo' }),
+      file({ path: '/x/photo.jpg', name: 'photo.jpg', ext: 'jpg', pinyin: '' }),
+    ])
+    const r = search(db, { keyword: 'yddz', limit: 10, offset: 0 })
+    expect(r.items.map((i) => i.name)).toContain('移动底座.docx')
   })
 
   it('按名称升序排序（不区分大小写）', () => {

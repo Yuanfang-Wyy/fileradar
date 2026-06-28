@@ -1,9 +1,23 @@
 import { readdir, stat } from 'node:fs/promises'
 import type { Stats } from 'node:fs'
 import { basename, dirname, extname, join } from 'node:path'
+import { pinyin } from 'pinyin-pro'
 import { INDEX_BATCH_SIZE } from '@shared/constants'
 import type { IndexProgress } from '@shared/types'
 import { clearAll, makeUpsert, type AppDatabase, type FileInput } from './db'
+
+/**
+ * 计算文件名的拼音首字母 + 全拼（空格分隔，供 FTS 分词），使「yddz」「yidong」命中「移动底座」。
+ * 不含中文时返回空串（纯英文无需转换）。纯函数，便于单元测试。
+ */
+export function toPinyin(name: string): string {
+  if (!/[一-龥]/.test(name)) {
+    return ''
+  }
+  const initials = pinyin(name, { pattern: 'first', toneType: 'none', type: 'array', nonZh: 'removed' }).join('')
+  const full = pinyin(name, { toneType: 'none', type: 'array', nonZh: 'removed' }).join('')
+  return `${initials} ${full}`.trim()
+}
 
 /** 从文件路径与 stat 结果提取入库元数据。纯函数，便于单元测试。 */
 export function extractFileMeta(fullPath: string, stats: Stats): FileInput {
@@ -16,6 +30,7 @@ export function extractFileMeta(fullPath: string, stats: Stats): FileInput {
     size: stats.size,
     mtime: Math.floor(stats.mtimeMs),
     isDir,
+    pinyin: toPinyin(name),
   }
 }
 
