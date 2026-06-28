@@ -18,8 +18,12 @@ export type SortColumn = 'name' | 'path' | 'size' | 'mtime'
 /** 排序方向。 */
 export type SortOrder = 'asc' | 'desc'
 
+/** 搜索模式（可配置）。filename 已实现；content/semantic 见 ROADMAP，逐步上线。 */
+export type SearchMode = 'filename' | 'content' | 'semantic'
+
 /** 一次搜索请求的参数。 */
 export interface SearchQuery {
+  mode?: SearchMode // 缺省按文件名
   keyword: string
   ext?: string // 按扩展名筛选
   minSize?: number
@@ -57,4 +61,5 @@ export interface AppSettings {
   globalShortcut: string // 全局快捷键
   launchAtLogin: boolean
   maxResults: number // 搜索结果上限，默认 200
+  searchMode: SearchMode // 搜索模式（文件名/内容/语义）
 }

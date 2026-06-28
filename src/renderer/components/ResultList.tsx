@@ -6,7 +6,7 @@ import { ResultItem } from './ResultItem'
 
 const ROW_HEIGHT = 28
 const MIN_COL_WIDTH = 60
-const WIDTHS_KEY = 'fileradar:colWidths'
+const WIDTHS_KEY = 'scout:colWidths'
 const DEFAULT_WIDTHS = [220, 380, 96, 150] // 名称 / 路径 / 大小 / 修改时间
 
 const COLUMNS: { col: SortColumn; label: string; align: 'left' | 'right' }[] = [

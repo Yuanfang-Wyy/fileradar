@@ -35,4 +35,5 @@ export const DEFAULT_SETTINGS: AppSettings = {
   globalShortcut: DEFAULT_GLOBAL_SHORTCUT,
   launchAtLogin: false,
   maxResults: DEFAULT_MAX_RESULTS,
+  searchMode: 'filename',
 }

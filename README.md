@@ -1,4 +1,4 @@
-# FileRadar · 文件雷达
+# Scout · 极速文件检索
 
 > Mac 桌面文件检索工具，对标 Windows [Everything](https://www.voidtools.com/)。秒级索引、毫秒搜索、双击 Cmd 全局唤起。
 
@@ -18,9 +18,9 @@
 
 ## 📦 安装
 
-下载 `release/FileRadar-<version>-arm64.dmg`（Apple Silicon），或自行构建（见下）。
+下载 `release/Scout-<version>-arm64.dmg`（Apple Silicon），或自行构建（见下）。
 
-1. 打开 DMG，将 **FileRadar** 拖入「应用程序」
+1. 打开 DMG，将 **Scout** 拖入「应用程序」
 2. **首次打开**：右键 → 「打开」（应用为 ad-hoc 签名未公证，需绕过 Gatekeeper 一次）
 3. 授权两项权限：
    - **完全磁盘访问**（扫描受保护目录）：系统设置 → 隐私与安全性 → 完全磁盘访问

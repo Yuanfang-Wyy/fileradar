@@ -11,7 +11,7 @@ function sendAction(getWindow: () => BrowserWindow | null, action: string): void
   getWindow()?.webContents.send(IPC.MENU.ACTION, action)
 }
 
-/** 构建并设置应用菜单（对标 Everything 的菜单栏，映射到 FileRadar 功能）。 */
+/** 构建并设置应用菜单（对标 Everything 的菜单栏，映射到 Scout 功能）。 */
 export function buildAppMenu(actions: MenuActions): void {
   const isMac = process.platform === 'darwin'
   const send = (action: string): void => sendAction(actions.getWindow, action)
@@ -51,12 +51,12 @@ export function buildAppMenu(actions: MenuActions): void {
       label: '帮助',
       submenu: [
         {
-          label: '关于 FileRadar',
+          label: '关于 Scout',
           click: () => {
             void dialog.showMessageBox({
               type: 'info',
-              title: 'FileRadar',
-              message: `FileRadar ${app.getVersion()}`,
+              title: 'Scout',
+              message: `Scout ${app.getVersion()}`,
               detail: 'Mac 桌面文件检索工具，功能对标 Windows Everything。',
             })
           },

@@ -1,5 +1,5 @@
 {
-  "name": "fileradar",
+  "name": "scout",
   "version": "0.1.0",
   "description": "Mac 桌面文件检索工具，功能对标 Windows Everything",
   "main": "./out/main/index.js",

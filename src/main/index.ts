@@ -100,7 +100,7 @@ function applySystemSettings(settings: AppSettings): void {
 }
 
 app.whenReady().then(() => {
-  db = openDatabase(join(app.getPath('userData'), 'fileradar.db'))
+  db = openDatabase(join(app.getPath('userData'), 'scout.db'))
   registerIpcHandlers(db, getWindow, applySystemSettings)
   createWindow()
   const reindex = (): void => {
@@ -123,7 +123,7 @@ app.whenReady().then(() => {
     }
   })
 
-  log.info('FileRadar 主进程已启动')
+  log.info('Scout 主进程已启动')
 })
 
 // 托盘常驻：关闭窗口不退出应用（靠托盘/快捷键重新唤起）。

@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { DEFAULT_MAX_RESULTS, SEARCH_DEBOUNCE_MS } from '@shared/constants'
-import type { SearchResult, SortColumn, SortOrder } from '@shared/types'
+import type { SearchMode, SearchResult, SortColumn, SortOrder } from '@shared/types'
 
 const EMPTY_RESULT: SearchResult = { items: [], total: 0, elapsedMs: 0 }
-const PERSIST_KEY = 'fileradar:search'
+const PERSIST_KEY = 'scout:search'
 
 interface PersistedSearch {
   sortBy?: SortColumn | null
@@ -36,10 +36,11 @@ export interface UseSearch {
 }
 
 /**
- * 搜索 hook：关键词/筛选/排序变化后防抖 SEARCH_DEBOUNCE_MS 经 IPC 查询。
- * 排序列与扩展名筛选持久化到 localStorage，下次启动自动恢复。
+ * 搜索 hook：关键词/筛选/排序/模式变化后防抖经 IPC 查询。
+ * mode 由调用方（按设置）传入，决定搜索模式（文件名/内容/语义）。
+ * 排序列与扩展名筛选持久化到 localStorage。
  */
-export function useSearch(): UseSearch {
+export function useSearch(mode: SearchMode = 'filename'): UseSearch {
   const [keyword, setKeyword] = useState('')
   const [ext, setExt] = useState<string>(() => loadPersisted().ext ?? '')
   const [sortBy, setSortBy] = useState<SortColumn | null>(() => loadPersisted().sortBy ?? null)
@@ -60,7 +61,6 @@ export function useSearch(): UseSearch {
     [sortBy],
   )
 
-  // 持久化排序/筛选偏好
   useEffect(() => {
     localStorage.setItem(PERSIST_KEY, JSON.stringify({ sortBy, sortOrder, ext }))
   }, [sortBy, sortOrder, ext])
@@ -71,6 +71,7 @@ export function useSearch(): UseSearch {
       setLoading(true)
       window.fileRadar.search
         .query({
+          mode,
           keyword,
           ext: ext || undefined,
           sortBy: sortBy ?? undefined,
@@ -86,7 +87,7 @@ export function useSearch(): UseSearch {
     return () => {
       if (timer.current) clearTimeout(timer.current)
     }
-  }, [keyword, ext, sortBy, sortOrder])
+  }, [mode, keyword, ext, sortBy, sortOrder])
 
   return { keyword, setKeyword, ext, setExt, sortBy, sortOrder, toggleSort, result, loading }
 }

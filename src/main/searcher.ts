@@ -99,6 +99,10 @@ export function buildOrderBy(query: SearchQuery, hasMatch: boolean): string {
  * 排序由 buildOrderBy 决定（用户指定列 > 相关度 > 修改时间倒序）。
  */
 export function search(db: AppDatabase, query: SearchQuery): SearchResult {
+  // 搜索模式分发：content/semantic 见 ROADMAP，尚未实现，先返回空（UI 会提示「开发中」）
+  if ((query.mode ?? 'filename') !== 'filename') {
+    return { items: [], total: 0, elapsedMs: 0 }
+  }
   const start = performance.now()
   const match = buildFtsMatch(query.keyword)
   const filters = buildFilters(query)
